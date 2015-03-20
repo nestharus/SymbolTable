@@ -2,62 +2,195 @@ package compile.antlr;
 
 import java.util.Stack;
 
-// This class begins a Query that starts at a Symbol and then, using
-// a Signature, locates another Symbol by navigating over the graph of
-// links between symbols. Needs to check the HashMap and phases and stop
-// when it encounters a symbol, not when the symbol it is currently inside
-// of is a match
-//
-//	scope A
-//		integer B
-//
-//	if searching for A.B, it will stop at A once it sees that B is
-//	inside of A. It will not stop at B.
-//
-//	A Query can only be used a single time.
-//
-//	The query needs to store the path to the symbol from the origin
-//	within a Stack. It also needs to store the final symbol and the
-//	final privileges used to access that symbol.
-//
-//	As the Query searches, it will recursively call itself, storing
-//	branching privileges on the stack.
-//
-//	When a Query encounters a symbol that is a match, it will store it
-//	as a prospective Symbol, but it will not stop searching until it has
-//	either exhausted the graph or has found an accessible symbol.
-//
-//	If the Query has found some symbol and that symbol can't be accessed, the
-//	Query has failed. The path should still be saved along with everything else.
-//	This data can be used to generate error messages.
-//
-//	If the Query has found no symbol, then the query has failed. In this case, the
-//	thing should return an empty symbol.
-//
-//	If the query has found the symbol and that symbol can be accessed, the query
-//	was a success.
-//
-//	The constructor should initialize the Query
-//	the resolve method should execute the query (possibly rename it to execute)
-//	The execute method should return nothing. Use getters instead.
+public class SymbolQuery {
+	
+	private SymbolPrivilegeSet privileges;
+	private SymbolPrivilegeSet resolvedPrivileges;
+	private SymbolResolve originSymbol;
+	private ISignature symbolToFind;
+	private Symbol resolvedSymbol;
+	private Stack<Symbol> path;
+	
+	public SymbolQuery(SymbolResolve symbolResolve, Symbol symbol, SymbolPrivilegeSet symbolPrivilegeSet) {
+		this.originSymbol = symbolResolve;
+		this.resolvedSymbol = symbol;
+		this.privileges = symbolPrivilegeSet;
+		this.path = new Stack<Symbol>();
+	}
+	
+	public void execute() {
+		// TODO
+	}
+	
+	public Stack<Symbol> getPath() {
+		return this.path;
+	}
+	
+	public Symbol getResolvedSymbol() {
+		return this.resolvedSymbol;
+	}
+	
+	public SymbolResolve getOrigin() {
+		return this.originSymbol;
+	}
+	
+	public SymbolPrivilegeSet getResolvedPrivileges() {
+		return this.resolvedPrivileges;
+	}
+	
+	public boolean isEmpty() {
+		return this.path.isEmpty(); // TODO ?
+	}
+	
+	public boolean isSuccess() {
+		return false; // TODO
+	}
+	
+	protected boolean resolve(SymbolResolve symbolResolve, SymbolPrivilegeSet symbolPrivilegeSet) {
+		return false; // TODO
+	}
+	
+}
+
+/*
+import java.util.Stack;
+
 public class SymbolQuery
 {
-	public SymbolQuery(AccessModifier accessModifier, ResolvableSymbol origin)
+	private String						symbolSignature;
+	protected AccessModifier			accessModifier;
+	protected Symbol					resolvedSymbol;
+	protected Stack<ResolvableSymbol>	path;
+
+	public SymbolQuery(String symbolSignature)
 	{
+		// this is not null because of the isSuccess method
+		// this takes a new AccessModifier, meaning that it can't
+		// be accessed by anything
+		this.resolvedSymbol = new Symbol(new AccessModifier());
+
+		// this is not null because of isSuccess
+		// this is the empty set, meaning that it can only access
+		// the empty set
+		this.accessModifier = AccessModifier.createSet();
+
+		// this is stored as a field because it never changes
+		this.symbolSignature = symbolSignature;
+
+		this.path = new Stack<ResolvableSymbol>();
 	} // SymbolQuery
 
-	public boolean isSuccess()
+	public String getSignature()
 	{
+		return symbolSignature;
+	} // getName
 
-	} // isSuccess
+	public AccessModifier getAccessModifier()
+	{
+		return this.accessModifier;
+	} // getAccessModifier
+
+	public Symbol getResolvedSymbol()
+	{
+		return this.resolvedSymbol;
+	} // getResolvedSymbol
 
 	public Stack<ResolvableSymbol> getPath()
 	{
-		return state.path;
+		return this.path;
 	} // getPath
 
-	public void resolve(String symbolName) throws Exception
+	// a success occurs when the query's access modifier can
+	// access the query's symbol
+	private boolean isSuccess(AccessModifier accessModifier)
 	{
-		// find
+		return accessModifier.containsAll(resolvedSymbol.getAccessModifier());
+	} // isSuccess
+
+	public boolean isSuccess()
+	{
+		return isSuccess(accessModifier);
+	} // isSuccess
+
+	// A symbol can't be resolved unless it has a name
+	// If the resolved symbol has no name, no symbol was resolved
+	public boolean isEmpty()
+	{
+		return resolvedSymbol.getName().isEmpty();
+	} // isEmpty
+
+	protected void resolve(AccessModifier accessModifier, ResolvableSymbol frontier)
+	{
+		// first check the symbol table for the symbol
+		if (frontier.getSymbolTable().containsKey(symbolSignature))
+		{
+			// if the symbol was found, then store it as the resolved
+			// symbol
+			this.resolvedSymbol = frontier.getSymbolTable().get(symbolSignature);
+
+			// the access modifier is stored even on a failed resolved
+			// symbol because it will be lost otherwise
+			// furthermore, false positives can occur as the *initial*
+			// access modifier may actually be able to access the symbol
+			this.accessModifier = accessModifier;
+
+			// if the found symbol can be accessed with
+			// the current access modifier, then end the search
+			if (isSuccess(accessModifier))
+			{
+				path.push(frontier);
+
+				return;
+			} // if
+		} // if
+
+		// can result in an infinite loop
+		for (SymbolSearchPhase phase : frontier.getPhases())
+		{
+			AccessModifier sub = phase.getPrivileges(accessModifier);
+			for (SymbolLink link : phase.getLinks(accessModifier))
+			{
+				// resolve via link
+				resolve(link.getPrivileges(sub), link.getDestination(accessModifier));
+
+				// if the above resolution resulted in a success
+				// then terminate
+				if (isSuccess())
+				{
+					path.push(frontier);
+
+					return;
+				} // if
+			} // for
+		} // for
+	} // resolve
+
+	public static SymbolQuery resolve(String symbolSignature, AccessModifier accessModifier, Symbol origin) throws Exception
+	{
+		// SymbolName Exception
+		if (symbolSignature == null || symbolSignature.isEmpty())
+		{
+			throw new Exception("Null Symbol Name");
+		} // if
+
+		// Check origin
+		if (origin == null || !ResolvableSymbol.class.isInstance(origin))
+		{
+			throw new Exception("Invalid Start Symbol");
+		} // if
+
+		// Check to see if origin can be accessed
+		if (!accessModifier.containsAll(origin.getAccessModifier()))
+		{
+			throw new Exception("Lacking Privileges");
+		} // if
+
+		// resolve query
+		SymbolQuery query = new SymbolQuery(symbolSignature);
+
+		query.resolve(accessModifier, (ResolvableSymbol) origin);
+
+		return query;
 	} // resolve
 } // SymbolQuery
+*/

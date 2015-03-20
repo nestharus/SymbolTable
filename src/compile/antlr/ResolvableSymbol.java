@@ -6,13 +6,13 @@ import java.util.LinkedList;
 
 public class ResolvableSymbol extends Symbol
 {
-	private LinkedList<ResolvableSymbol>	searchPhases;
+	private LinkedList<SymbolSearchPhase>	searchPhases;
 	private HashSet<Symbol>					symbolRegion;
 	private HashMap<String, Symbol>			symbolTable;
 
 	private void initialize()
 	{
-		searchPhases = new LinkedList<ResolvableSymbol>();
+		searchPhases = new LinkedList<SymbolSearchPhase>();
 		symbolRegion = new HashSet<Symbol>();
 		symbolTable = new HashMap<String, Symbol>();
 	} // initialize
@@ -41,7 +41,7 @@ public class ResolvableSymbol extends Symbol
 		initialize();
 	} // Symbol
 
-	public LinkedList<ResolvableSymbol> getPhases()
+	public LinkedList<SymbolSearchPhase> getPhases()
 	{
 		return searchPhases;
 	} // getPhases

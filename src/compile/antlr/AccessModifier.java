@@ -30,7 +30,7 @@ import java.util.HashSet;
 
 public class AccessModifier
 {
-	private HashSet<AccessModifier>	mask;
+	private final HashSet<AccessModifier>	mask;
 
 	public AccessModifier()
 	{
@@ -38,7 +38,7 @@ public class AccessModifier
 		mask.add(this);
 	} // AccessMask
 
-	private static AccessModifier createSet()
+	public static AccessModifier createSet()
 	{
 		AccessModifier set = new AccessModifier();
 

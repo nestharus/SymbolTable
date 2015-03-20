@@ -79,43 +79,64 @@ public class ScopeTest
 	 * Global scopes include the child scopes
 	 */
 
-	private static void resolve(Symbol.Query query, String symbolToFind)
+	private static void testSuccess(SymbolPrivilegeSet origin, SymbolPrivilegeSet destination, String success)
 	{
-		Symbol found = query.resolveOrNull(symbolToFind);
-
-		if (found == null)
+		if (origin.isSuccess(destination))
 		{
-			System.out.println("Unable to resolve symbol: " + symbolToFind);
+			System.out.println(success);
 		} // if
 		else
 		{
-			System.out.println(found.name + "File{" + found.filename + "} Lock{" + found.lock + "} Key{" + query.getKey() + "}");
+			System.out.println("!" + success);
 		} // else
-	} // resolve
-
-	private static Symbol.Query resolve(Symbol symbol, String symbolToFind)
-	{
-		Symbol.Query query = symbol.new Query();
-		Symbol found = query.resolveOrNull(symbolToFind);
-
-		if (found == null)
-		{
-			System.out.println("Unable to resolve symbol: " + symbolToFind);
-		} // if
-		else
-		{
-			System.out.println("Found \"" + found.name + "\"\n\tFile: \"" + found.filename + "\"\n\tLock: \"" + found.lock
-								+ "\"\n\tKey: \"" + query.getKey() + "\"");
-		} // else
-
-		return query;
-	} // resolve
+	} // testSuccess
 
 	private static void publicAnonymousScope()
 	{
+		SymbolPrivilegeSet g = new SymbolPrivilegeSetRegional();
+
+		SymbolPrivilegeSet p1 = new SymbolPrivilegeSetLocal();
+		SymbolPrivilegeSet p2 = new SymbolPrivilegeSetLocal();
+		SymbolPrivilegeSet p3 = new SymbolPrivilegeSetLocal();
+		SymbolPrivilegeSet p4 = new SymbolPrivilegeSetLocal();
+		SymbolPrivilegeSet p5 = new SymbolPrivilegeSetLocal();
+
+		SymbolPrivilegeSet ps1 = SymbolPrivilegeSet.union(p1, p2, p3, p4, p5);
+		SymbolPrivilegeSet ps2 = SymbolPrivilegeSet.union(p1, p2, p3);
+		SymbolPrivilegeSet ps3 = SymbolPrivilegeSet.union(p3, p4, p5);
+		SymbolPrivilegeSet ps4 = SymbolPrivilegeSet.union(p1, p3);
+
+		testSuccess(ps1, ps2, "ps1->ps2");
+		testSuccess(ps2, ps4, "ps2->ps4");
+		testSuccess(ps3, ps4, "ps3->ps4");
+
+		SymbolPrivilegeSet r1 = new SymbolPrivilegeSetRegional();
+		SymbolPrivilegeSet r2 = new SymbolPrivilegeSetRegional();
+		SymbolPrivilegeSet r3 = new SymbolPrivilegeSetRegional();
+		SymbolPrivilegeSet r4 = new SymbolPrivilegeSetRegional();
+		SymbolPrivilegeSet r5 = new SymbolPrivilegeSetRegional();
+
+		SymbolPrivilegeSet rs1 = SymbolPrivilegeSet.union(r1, r3);
+		SymbolPrivilegeSet rs2 = SymbolPrivilegeSet.union(r3, r4);
+		SymbolPrivilegeSet rs3 = SymbolPrivilegeSet.union(r4, r5);
+
+		testSuccess(rs1, rs2, "rs1->rs2");
+		testSuccess(rs2, rs3, "rs2->rs3");
+		testSuccess(rs1, rs3, "rs1->rs3");
+
+		SymbolPrivilegeSet prs1 = SymbolPrivilegeSet.union(ps1, rs1);
+		SymbolPrivilegeSet prs2 = SymbolPrivilegeSet.union(ps2, rs2);
+		SymbolPrivilegeSet prs3 = SymbolPrivilegeSet.union(ps3, rs3);
+		SymbolPrivilegeSet prs4 = SymbolPrivilegeSet.union(ps4, r1, r4);
+
+		testSuccess(prs1, prs2, "prs1->prs2");
+		testSuccess(prs2, prs3, "prs2->prs3");
+		testSuccess(prs1, prs3, "prs1->prs3");
+
 		/*
 		 * This is the global scope, which includes all other scopes
 		 */
+		/*
 		Scope global = new Scope(null, Symbol.Access.Lock.PUBLIC, "");
 
 		Scope file1 = new Scope(null, Symbol.Access.Lock.PUBLIC, "file1");
@@ -157,7 +178,7 @@ public class ScopeTest
 		// resolve(global, "symbol1");
 		resolve(scope_a_1, "symbol3");
 		resolve(scope_a_2, "symbol3");
-
+		*/
 	} // public Anonymous Scope
 
 	public static void main(String[] args)

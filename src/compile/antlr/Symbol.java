@@ -1,5 +1,45 @@
 package compile.antlr;
 
+public class Symbol
+{
+	private ISignature	name;
+
+	public Symbol()
+	{
+		name = null;
+	} // Symbol
+
+	public Symbol(ISignature name)
+	{
+		this.name = name;
+	} // Symbol
+
+	public ISignature getSignature()
+	{
+		return this.name;
+	} // getSignature
+
+	public String toString()
+	{
+		if (this.name == null)
+		{
+			return "";
+		} // if
+
+		return this.getSignature().toString();
+	} // toString
+
+	public int hashCode()
+	{
+		if (name == null)
+		{
+			return 0;
+		} // if
+
+		return this.getSignature().hashCode();
+	} // hashCode
+} // Symbol
+
 /*
  * Symbol
  *  public Symbol(String name)
@@ -10,7 +50,7 @@ package compile.antlr;
  *  public AccessModifier getAccessModifier()
  *  public String getName()
  *  public String toString()
- */
+
 
 public class Symbol
 {
@@ -60,3 +100,4 @@ public class Symbol
 		return name;
 	} // toString
 } // Symbol
+*/
