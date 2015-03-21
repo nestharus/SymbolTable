@@ -28,6 +28,12 @@ public class SymbolPathSetHashMap extends SymbolPathSet
 	} // getPaths
 
 	@Override
+	public boolean isProxy()
+	{
+		return false;
+	} // isProxy
+
+	@Override
 	public void addPath(SymbolPath symbolPath) throws Exception
 	{
 		if (paths.containsKey(symbolPath.getDestination().getSignature()))

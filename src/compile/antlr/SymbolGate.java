@@ -11,9 +11,9 @@ public class SymbolGate
 		this.grantedPrivilegeSet = grantedPrivilegeSet;
 	} // SymbolGate
 
-	protected boolean isSuccess(SymbolPrivilegeSet symbolPrivilegeSet)
+	public boolean isSuccess(SymbolPrivilegeSet origin)
 	{
-		return symbolPrivilegeSet.isSuccess(this.requiredPrivilegeSet);
+		return origin.isSuccess(this.requiredPrivilegeSet);
 	} // isSuccess
 
 	public SymbolPrivilegeSet getPrivileges(SymbolPrivilegeSet symbolPrivilegeSet)

@@ -33,20 +33,24 @@ public class SymbolPrivilegeSet
 
 	public SymbolPrivilegeSet createSet()
 	{
+		LinkedList<SymbolPrivilege> symbolPrivileges = new LinkedList<SymbolPrivilege>();
+
+		for (SymbolPrivilege privilege : this.symbolPrivileges)
+		{
+			symbolPrivileges.add(privilege.createSet());
+		} // for
+
 		SymbolPrivilegeSet symbolPrivilegeSet = null;
 
 		try
 		{
-			symbolPrivilegeSet = this.getClass().getConstructor(LinkedList.class).newInstance(new LinkedList<SymbolPrivilege>());
+			symbolPrivilegeSet =
+									this.getClass().getConstructor(new Class[] { LinkedList.class })
+										.newInstance(new Object[] { symbolPrivileges });
 		} // try
 		catch (Exception e)
 		{
 		} // catch
-
-		for (SymbolPrivilege privilege : symbolPrivileges)
-		{
-			symbolPrivilegeSet.symbolPrivileges.add(privilege.createSet());
-		} // for
 
 		return symbolPrivilegeSet;
 	} // createSet

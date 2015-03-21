@@ -39,7 +39,9 @@ public class SymbolPrivilege
 
 		try
 		{
-			privilege = this.getClass().getConstructor(HashSet.class).newInstance(new HashSet<SymbolPrivilege>());
+			privilege =
+						this.getClass().getConstructor(new Class[] { HashSet.class })
+							.newInstance(new Object[] { new HashSet<SymbolPrivilege>() });
 		} // try
 		catch (Exception e)
 		{

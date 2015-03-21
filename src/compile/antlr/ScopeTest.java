@@ -91,7 +91,7 @@ public class ScopeTest
 		} // else
 	} // testSuccess
 
-	private static void publicAnonymousScope()
+	private static void symbolPrivilegeTest()
 	{
 		SymbolPrivilegeSet g = new SymbolPrivilegeSetRegional();
 
@@ -181,9 +181,108 @@ public class ScopeTest
 		*/
 	} // public Anonymous Scope
 
+	private static void symbolScopeTest() throws Exception
+	{
+		// regions
+		SymbolPrivilegeSet fileRegion1 = new SymbolPrivilegeSetRegional();
+		SymbolPrivilegeSet fileRegion2 = new SymbolPrivilegeSetRegional();
+		SymbolPrivilegeSet fileRegion3 = new SymbolPrivilegeSetRegional();
+
+		// scopes
+		// note that the global scope has no region
+		/*
+		 * File1 { A { B { declare module E }, D { } } }
+		 * File2 { C { implement E } }
+		 * File3 { F { } }
+		 * 
+		 * E outer = C, B
+		 * F private import E
+		 * 
+		 * A {
+		 * 		public a
+		 * 		public b
+		 * }
+		 * 
+		 * B {
+		 * 	internal b
+		 * }
+		 * 
+		 * D {
+		 * 	public c
+		 * }
+		 * 
+		 * scopeGlobal shadow { A, C, F }
+		 */
+
+		SymbolScope scopeGlobal = new SymbolScope();
+
+		SymbolScope file1 = new SymbolScope(new SignatureString("File1"), SymbolPrivilegeSet.union(fileRegion1, scopeGlobal.getRegion()));
+		SymbolScope file2 = new SymbolScope(new SignatureString("File2"), SymbolPrivilegeSet.union(fileRegion2, scopeGlobal.getRegion()));
+		SymbolScope file3 = new SymbolScope(new SignatureString("File3"), SymbolPrivilegeSet.union(fileRegion3, scopeGlobal.getRegion()));
+
+		SymbolScope scopeA = new SymbolScope(new SignatureString("A"), file1.getRegion());
+		SymbolScope scopeB = new SymbolScope(new SignatureString("B"), scopeA.getRegion());
+		SymbolScope scopeC = new SymbolScope(new SignatureString("C"), file2.getRegion());
+		SymbolScope scopeD = new SymbolScope(new SignatureString("D"), scopeA.getRegion());
+		SymbolScope scopeE = new SymbolScope(new SignatureString("E"), SymbolPrivilegeSet.union(scopeC.getRegion(), scopeB.getRegion()));
+		SymbolScope scopeF = new SymbolScope(new SignatureString("F"), file3.getRegion());
+
+		Symbol symbolA = new Symbol(new SignatureString("A"));
+		Symbol symbolB = new Symbol(new SignatureString("B"));
+		Symbol symbolC = new Symbol(new SignatureString("C"));
+		Symbol symbolE = new Symbol(new SignatureString("E"));
+
+		// setup global scope
+		scopeGlobal.includeSymbol(file1);
+		scopeGlobal.includeSymbol(file2);
+		scopeGlobal.includeSymbol(file3);
+
+		// setup files
+		file1.addSymbol(scopeA, SymbolScope.Privilege.Public);
+		file2.addSymbol(scopeC, SymbolScope.Privilege.Public);
+		file3.addSymbol(scopeF, SymbolScope.Privilege.Public);
+
+		// setup scope A
+		scopeA.addSymbol(scopeB, SymbolScope.Privilege.Public);
+		scopeA.addSymbol(scopeD, SymbolScope.Privilege.Public);
+		scopeA.addSymbol(symbolA, SymbolScope.Privilege.Public);
+		scopeA.addSymbol(symbolB, SymbolScope.Privilege.Public);
+
+		// setup scope B
+		scopeB.addSymbol(symbolB, SymbolPrivilegeSet.union(SymbolScope.Privilege.Public, scopeB.getRegion()));
+
+		// setup scope C
+		scopeC.addSymbol(symbolE, SymbolScope.Privilege.Public);
+
+		// setup scope d
+		scopeD.addSymbol(symbolC, SymbolScope.Privilege.Public);
+
+		// setup scope E
+		scopeB.includeSymbol(scopeE);
+		scopeE.addOuterSymbol(scopeC);
+
+		// setup scope F
+		scopeF.importSymbol(scopeE, SymbolScope.Privilege.Private);
+
+		// E, D
+		for (SymbolScope scope : SymbolScope.getCommonScopes(scopeA, scopeB))
+		{
+			System.out.println(scope.toString());
+		} // for
+	} // symbolScopeTest
+
 	public static void main(String[] args)
 	{
-		publicAnonymousScope();
+		// symbolPrivilegeTest();
+
+		try
+		{
+			symbolScopeTest();
+		} // try
+		catch (Exception e)
+		{
+			System.out.println(e.getMessage());
+		} // catch
 
 		/*
 		 * Public anonymous scopes (typically files)

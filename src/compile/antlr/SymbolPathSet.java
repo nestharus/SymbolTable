@@ -21,5 +21,10 @@ public abstract class SymbolPathSet extends SymbolGate
 
 	protected abstract LinkedList<SymbolPath> getPaths(ISignature signature);
 
+	public boolean isProxy()
+	{
+		return true;
+	} // isProxy
+
 	public abstract void addPath(SymbolPath symbolPath) throws Exception;
 } // SymbolPathSet

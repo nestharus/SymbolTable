@@ -2,22 +2,26 @@ package compile.antlr;
 
 public class SignatureString implements ISignature
 {
+	private final String	name;
 
-	private String	name;
+	public SignatureString(String name)
+	{
+		this.name = name;
+	} // SignatureString
 
 	public String toString()
 	{
 		return this.name;
-	}
+	} // toString
 
 	public int hashCode()
 	{
 		return name.hashCode();
-	}
+	} // hashCode
 
 	@Override
 	public boolean equals(ISignature signature)
 	{
-		return toString().equals(signature.toString());
+		return !this.name.isEmpty() && toString().equals(signature.toString());
 	} // equals
-}
+} // SignatureString
